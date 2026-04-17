@@ -65,7 +65,7 @@ decl_date = date_input if date_input else ""
 # HELPER: DRAW BOX TEXT
 # ---------------------------
 
-def draw_boxes(can, text, x, y, box_width=12, gap=2.5):
+def draw_boxes(can, text, x, y, box_width=12, gap=2.75):
     """
     Draw each character in separate box spacing
     """
