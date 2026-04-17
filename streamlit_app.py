@@ -1,70 +1,188 @@
 import streamlit as st
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import A4
-from PyPDF2 import PdfReader, PdfWriter
-import tempfile
-import os
+from datetime import date
 
-# -------- CONFIG --------
-PDF_TEMPLATE = "Form49A.pdf"  # must exist in repo root
+st.set_page_config(page_title="Form 49A - PAN Application", layout="wide")
 
-st.set_page_config(page_title="PDF Editor", layout="centered")
-st.title("PDF Name Editor")
+st.title("Form 49A - PAN Application Form")
 
-# -------- FORM --------
-with st.form("name_form"):
-    surname = st.text_input("Surname")
+# ---------------------------
+# 1. AO CODE
+# ---------------------------
+st.header("1. AO Code")
+
+col1, col2, col3, col4 = st.columns(4)
+with col1:
+    area_code = st.text_input("Area Code")
+with col2:
+    ao_type = st.text_input("AO Type")
+with col3:
+    range_code = st.text_input("Range Code")
+with col4:
+    ao_number = st.text_input("AO Number")
+
+# ---------------------------
+# 2. FULL NAME
+# ---------------------------
+st.header("2. Full Name")
+
+col1, col2, col3 = st.columns(3)
+with col1:
+    last_name = st.text_input("Last Name / Surname")
+with col2:
     first_name = st.text_input("First Name")
+with col3:
     middle_name = st.text_input("Middle Name")
 
-    submitted = st.form_submit_button("Generate PDF")
+# ---------------------------
+# 3. NAME ON CARD
+# ---------------------------
+st.header("3. Name to be Printed on Card")
 
-# -------- PROCESS --------
-if submitted:
+name_on_card = st.text_input("Full Name (as to be printed on PAN Card)")
 
-    if not os.path.exists(PDF_TEMPLATE):
-        st.error("PDF file not found in repository")
-    elif not surname or not first_name:
-        st.error("Surname and First Name are required")
+# ---------------------------
+# 4. GENDER + DOB
+# ---------------------------
+st.header("4. Gender & Date of Birth")
+
+col1, col2 = st.columns(2)
+with col1:
+    gender = st.radio("Gender", ["Male", "Female", "Other"])
+with col2:
+    dob = st.date_input("Date of Birth", min_value=date(1900, 1, 1))
+
+# ---------------------------
+# 5. FATHER'S NAME
+# ---------------------------
+st.header("5. Father's Name")
+
+col1, col2, col3 = st.columns(3)
+with col1:
+    father_last = st.text_input("Father's Last Name")
+with col2:
+    father_first = st.text_input("Father's First Name")
+with col3:
+    father_middle = st.text_input("Father's Middle Name")
+
+# ---------------------------
+# 6. ADDRESS
+# ---------------------------
+st.header("6. Address")
+
+address_type = st.radio("Address Type", ["Residence", "Office"])
+
+flat = st.text_input("Flat/Door/Block No.")
+premises = st.text_input("Name of Premises/Building")
+road = st.text_input("Road/Street/Lane")
+area = st.text_input("Area/Locality")
+
+col1, col2, col3 = st.columns(3)
+with col1:
+    city = st.text_input("Town/City/District")
+with col2:
+    state = st.text_input("State/UT")
+with col3:
+    pincode = st.text_input("Pincode")
+
+country = st.text_input("Country", value="India")
+
+# ---------------------------
+# 7. CONTACT DETAILS
+# ---------------------------
+st.header("7. Contact Details")
+
+col1, col2 = st.columns(2)
+with col1:
+    mobile = st.text_input("Mobile Number")
+with col2:
+    email = st.text_input("Email ID")
+
+# ---------------------------
+# 8. STATUS OF APPLICANT
+# ---------------------------
+st.header("8. Status of Applicant")
+
+status = st.selectbox(
+    "Select Status",
+    [
+        "Individual",
+        "Company",
+        "HUF",
+        "Firm",
+        "AOP",
+        "Trust",
+        "LLP",
+        "Local Authority",
+        "Government"
+    ]
+)
+
+# ---------------------------
+# 9. AADHAAR
+# ---------------------------
+st.header("9. Aadhaar Details")
+
+aadhaar = st.text_input("Aadhaar Number (Optional)")
+
+# ---------------------------
+# 10. DECLARATION
+# ---------------------------
+st.header("10. Declaration")
+
+place = st.text_input("Place")
+declaration_date = st.date_input("Date", value=date.today())
+
+agree = st.checkbox("I declare that the information given is true")
+
+# ---------------------------
+# SUBMIT BUTTON
+# ---------------------------
+if st.button("Submit Form"):
+    if not agree:
+        st.error("You must accept the declaration")
     else:
-        # Temporary files
-        overlay_path = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf").name
-        output_path = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf").name
+        data = {
+            "AO Code": {
+                "Area": area_code,
+                "Type": ao_type,
+                "Range": range_code,
+                "Number": ao_number
+            },
+            "Name": {
+                "Last": last_name,
+                "First": first_name,
+                "Middle": middle_name
+            },
+            "Name on Card": name_on_card,
+            "Gender": gender,
+            "DOB": str(dob),
+            "Father Name": {
+                "Last": father_last,
+                "First": father_first,
+                "Middle": father_middle
+            },
+            "Address": {
+                "Type": address_type,
+                "Flat": flat,
+                "Premises": premises,
+                "Road": road,
+                "Area": area,
+                "City": city,
+                "State": state,
+                "Pincode": pincode,
+                "Country": country
+            },
+            "Contact": {
+                "Mobile": mobile,
+                "Email": email
+            },
+            "Status": status,
+            "Aadhaar": aadhaar,
+            "Declaration": {
+                "Place": place,
+                "Date": str(declaration_date)
+            }
+        }
 
-        # -------- CREATE OVERLAY --------
-        c = canvas.Canvas(overlay_path, pagesize=A4)
-        c.setFont("Helvetica", 10)
-
-        # ⚠️ Adjust these coordinates for your PDF
-        c.drawString(150, 690, surname)
-        c.drawString(300, 690, first_name)
-        c.drawString(450, 690, middle_name)
-
-        c.save()
-
-        # -------- MERGE WITH ORIGINAL PDF --------
-        reader = PdfReader(PDF_TEMPLATE)
-        overlay = PdfReader(overlay_path)
-        writer = PdfWriter()
-
-        for i in range(len(reader.pages)):
-            page = reader.pages[i]
-
-            if i < len(overlay.pages):
-                page.merge_page(overlay.pages[i])
-
-            writer.add_page(page)
-
-        with open(output_path, "wb") as f:
-            writer.write(f)
-
-        # -------- DOWNLOAD --------
-        with open(output_path, "rb") as f:
-            st.download_button(
-                label="Download Edited PDF",
-                data=f,
-                file_name="edited_form.pdf",
-                mime="application/pdf"
-            )
-
-        st.success("PDF generated successfully!")
+        st.success("Form Submitted Successfully!")
+        st.json(data)
