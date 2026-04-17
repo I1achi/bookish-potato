@@ -84,13 +84,13 @@ def create_overlay(data):
     # ⚠️ Adjust coordinates EXACTLY as per PDF
 
     # First Name (boxes)
-    draw_boxes(can, data["first_name"], 195, 590)
+    draw_boxes(can, data["first_name"], 195, 589)
 
     # Middle Name
-    draw_boxes(can, data["middle_name"], 195, 575)
+    draw_boxes(can, data["middle_name"], 195, 574)
 
     # Last Name
-    draw_boxes(can, data["last_name"], 195, 605)
+    draw_boxes(can, data["last_name"], 195, 604)
 
     # Name on Card
     draw_boxes(can, data["name_on_card"], 100, 630)
