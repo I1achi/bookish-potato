@@ -122,7 +122,7 @@ def create_overlay(data):
     draw_boxes(can, data["date"], 300, 350)
 
     can.save()
-    can.setFont("Helvetica-Bold", 10)
+    can.setFont("Helvetica-Bold", 8.5)
     packet.seek(0)
 
     return PdfReader(packet)
