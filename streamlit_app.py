@@ -65,7 +65,7 @@ decl_date = date_input if date_input else ""
 # HELPER: DRAW BOX TEXT
 # ---------------------------
 
-def draw_boxes(can, text, x, y, box_width=12, gap=2):
+def draw_boxes(can, text, x, y, box_width=12, gap=2.5):
     """
     Draw each character in separate box spacing
     """
@@ -84,13 +84,13 @@ def create_overlay(data):
     # ⚠️ Adjust coordinates EXACTLY as per PDF
 
     # First Name (boxes)
-    draw_boxes(can, data["first_name"], 196, 589)
+    draw_boxes(can, data["first_name"], 195, 589)
 
     # Middle Name
-    draw_boxes(can, data["middle_name"], 196, 574)
+    draw_boxes(can, data["middle_name"], 195, 574)
 
     # Last Name
-    draw_boxes(can, data["last_name"], 196, 604)
+    draw_boxes(can, data["last_name"], 195, 604)
 
     # Name on Card
     draw_boxes(can, data["name_on_card"], 100, 630)
