@@ -79,6 +79,7 @@ def draw_boxes(can, text, x, y, box_width=12, gap=2):
 def create_overlay(data):
     packet = io.BytesIO()
     can = canvas.Canvas(packet)
+    can.setFont("Courier", 8.5)
 
     # ⚠️ Adjust coordinates EXACTLY as per PDF
 
@@ -122,7 +123,6 @@ def create_overlay(data):
     draw_boxes(can, data["date"], 300, 350)
 
     can.save()
-    can.setFont("Helvetica-Bold", 8.5)
     packet.seek(0)
 
     return PdfReader(packet)
