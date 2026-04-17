@@ -1,188 +1,187 @@
 import streamlit as st
 from datetime import date
+from reportlab.pdfgen import canvas
+from PyPDF2 import PdfReader, PdfWriter
+import io
+import os
 
-st.set_page_config(page_title="Form 49A - PAN Application", layout="wide")
+st.set_page_config(page_title="Form 49A Auto Fill", layout="wide")
 
-st.title("Form 49A - PAN Application Form")
-
-# ---------------------------
-# 1. AO CODE
-# ---------------------------
-st.header("1. AO Code")
-
-col1, col2, col3, col4 = st.columns(4)
-with col1:
-    area_code = st.text_input("Area Code")
-with col2:
-    ao_type = st.text_input("AO Type")
-with col3:
-    range_code = st.text_input("Range Code")
-with col4:
-    ao_number = st.text_input("AO Number")
+st.title("Form 49A - PAN Application Auto Fill")
 
 # ---------------------------
-# 2. FULL NAME
+# INPUT FORM
 # ---------------------------
-st.header("2. Full Name")
+
+st.header("Applicant Details")
 
 col1, col2, col3 = st.columns(3)
 with col1:
-    last_name = st.text_input("Last Name / Surname")
-with col2:
     first_name = st.text_input("First Name")
-with col3:
+with col2:
     middle_name = st.text_input("Middle Name")
+with col3:
+    last_name = st.text_input("Last Name")
 
-# ---------------------------
-# 3. NAME ON CARD
-# ---------------------------
-st.header("3. Name to be Printed on Card")
-
-name_on_card = st.text_input("Full Name (as to be printed on PAN Card)")
-
-# ---------------------------
-# 4. GENDER + DOB
-# ---------------------------
-st.header("4. Gender & Date of Birth")
+name_on_card = st.text_input("Name on PAN Card")
 
 col1, col2 = st.columns(2)
 with col1:
-    gender = st.radio("Gender", ["Male", "Female", "Other"])
+    gender = st.selectbox("Gender", ["Male", "Female", "Other"])
 with col2:
-    dob = st.date_input("Date of Birth", min_value=date(1900, 1, 1))
+    dob = st.date_input("Date of Birth")
 
-# ---------------------------
-# 5. FATHER'S NAME
-# ---------------------------
-st.header("5. Father's Name")
+st.header("Father's Details")
 
 col1, col2, col3 = st.columns(3)
 with col1:
-    father_last = st.text_input("Father's Last Name")
+    father_first = st.text_input("Father First Name")
 with col2:
-    father_first = st.text_input("Father's First Name")
+    father_middle = st.text_input("Father Middle Name")
 with col3:
-    father_middle = st.text_input("Father's Middle Name")
+    father_last = st.text_input("Father Last Name")
 
-# ---------------------------
-# 6. ADDRESS
-# ---------------------------
-st.header("6. Address")
+st.header("Address")
 
-address_type = st.radio("Address Type", ["Residence", "Office"])
-
-flat = st.text_input("Flat/Door/Block No.")
-premises = st.text_input("Name of Premises/Building")
-road = st.text_input("Road/Street/Lane")
-area = st.text_input("Area/Locality")
+flat = st.text_input("Flat / Building")
+road = st.text_input("Road / Street")
+city = st.text_input("City")
 
 col1, col2, col3 = st.columns(3)
 with col1:
-    city = st.text_input("Town/City/District")
+    state = st.text_input("State")
 with col2:
-    state = st.text_input("State/UT")
-with col3:
     pincode = st.text_input("Pincode")
+with col3:
+    country = st.text_input("Country", value="India")
 
-country = st.text_input("Country", value="India")
-
-# ---------------------------
-# 7. CONTACT DETAILS
-# ---------------------------
-st.header("7. Contact Details")
+st.header("Contact")
 
 col1, col2 = st.columns(2)
 with col1:
-    mobile = st.text_input("Mobile Number")
+    mobile = st.text_input("Mobile")
 with col2:
-    email = st.text_input("Email ID")
+    email = st.text_input("Email")
 
-# ---------------------------
-# 8. STATUS OF APPLICANT
-# ---------------------------
-st.header("8. Status of Applicant")
+aadhaar = st.text_input("Aadhaar Number")
 
-status = st.selectbox(
-    "Select Status",
-    [
-        "Individual",
-        "Company",
-        "HUF",
-        "Firm",
-        "AOP",
-        "Trust",
-        "LLP",
-        "Local Authority",
-        "Government"
-    ]
-)
-
-# ---------------------------
-# 9. AADHAAR
-# ---------------------------
-st.header("9. Aadhaar Details")
-
-aadhaar = st.text_input("Aadhaar Number (Optional)")
-
-# ---------------------------
-# 10. DECLARATION
-# ---------------------------
-st.header("10. Declaration")
+st.header("Declaration")
 
 place = st.text_input("Place")
 declaration_date = st.date_input("Date", value=date.today())
 
-agree = st.checkbox("I declare that the information given is true")
+agree = st.checkbox("I confirm all details are correct")
 
 # ---------------------------
-# SUBMIT BUTTON
+# PDF OVERLAY FUNCTION
 # ---------------------------
-if st.button("Submit Form"):
+
+def create_overlay(data):
+    packet = io.BytesIO()
+    can = canvas.Canvas(packet)
+
+    # ⚠️ Adjust coordinates based on your PDF
+
+    # Name
+    can.drawString(100, 700, data["first_name"])
+    can.drawString(250, 700, data["middle_name"])
+    can.drawString(400, 700, data["last_name"])
+
+    # Name on Card
+    can.drawString(100, 660, data["name_on_card"])
+
+    # Gender + DOB
+    can.drawString(100, 620, data["gender"])
+    can.drawString(200, 620, data["dob"])
+
+    # Father's Name
+    can.drawString(100, 580, data["father_first"])
+    can.drawString(250, 580, data["father_middle"])
+    can.drawString(400, 580, data["father_last"])
+
+    # Address
+    can.drawString(100, 520, data["flat"])
+    can.drawString(100, 500, data["road"])
+    can.drawString(100, 480, data["city"])
+
+    # Contact
+    can.drawString(100, 440, data["mobile"])
+    can.drawString(300, 440, data["email"])
+
+    # Aadhaar
+    can.drawString(100, 400, data["aadhaar"])
+
+    # Declaration
+    can.drawString(100, 350, data["place"])
+    can.drawString(300, 350, data["date"])
+
+    can.save()
+    packet.seek(0)
+
+    return PdfReader(packet)
+
+# ---------------------------
+# MERGE FUNCTION
+# ---------------------------
+
+def fill_pdf(input_pdf, output_pdf, data):
+    existing_pdf = PdfReader(open(input_pdf, "rb"))
+    overlay_pdf = create_overlay(data)
+
+    writer = PdfWriter()
+
+    for i in range(len(existing_pdf.pages)):
+        page = existing_pdf.pages[i]
+
+        if i < len(overlay_pdf.pages):
+            page.merge_page(overlay_pdf.pages[i])
+
+        writer.add_page(page)
+
+    with open(output_pdf, "wb") as f:
+        writer.write(f)
+
+# ---------------------------
+# SUBMIT ACTION
+# ---------------------------
+
+if st.button("Generate Filled PDF"):
+
     if not agree:
-        st.error("You must accept the declaration")
+        st.error("Please confirm declaration")
     else:
         data = {
-            "AO Code": {
-                "Area": area_code,
-                "Type": ao_type,
-                "Range": range_code,
-                "Number": ao_number
-            },
-            "Name": {
-                "Last": last_name,
-                "First": first_name,
-                "Middle": middle_name
-            },
-            "Name on Card": name_on_card,
-            "Gender": gender,
-            "DOB": str(dob),
-            "Father Name": {
-                "Last": father_last,
-                "First": father_first,
-                "Middle": father_middle
-            },
-            "Address": {
-                "Type": address_type,
-                "Flat": flat,
-                "Premises": premises,
-                "Road": road,
-                "Area": area,
-                "City": city,
-                "State": state,
-                "Pincode": pincode,
-                "Country": country
-            },
-            "Contact": {
-                "Mobile": mobile,
-                "Email": email
-            },
-            "Status": status,
-            "Aadhaar": aadhaar,
-            "Declaration": {
-                "Place": place,
-                "Date": str(declaration_date)
-            }
+            "first_name": first_name,
+            "middle_name": middle_name,
+            "last_name": last_name,
+            "name_on_card": name_on_card,
+            "gender": gender,
+            "dob": str(dob),
+            "father_first": father_first,
+            "father_middle": father_middle,
+            "father_last": father_last,
+            "flat": flat,
+            "road": road,
+            "city": city,
+            "mobile": mobile,
+            "email": email,
+            "aadhaar": aadhaar,
+            "place": place,
+            "date": str(declaration_date)
         }
 
-        st.success("Form Submitted Successfully!")
-        st.json(data)
+        input_pdf_path = "Form49A.pdf"
+        output_pdf_path = "filled_Form49A.pdf"
+
+        if not os.path.exists(input_pdf_path):
+            st.error("Form49A.pdf not found in project folder")
+        else:
+            fill_pdf(input_pdf_path, output_pdf_path, data)
+
+            with open(output_pdf_path, "rb") as f:
+                st.success("PDF Generated Successfully!")
+                st.download_button(
+                    "Download Filled Form",
+                    f,
+                    file_name="Form49A_filled.pdf"
+                )
