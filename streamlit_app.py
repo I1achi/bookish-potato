@@ -1,6 +1,7 @@
 import streamlit as st
 from datetime import datetime
 from reportlab.pdfgen import canvas
+from reportlab.lib import colors
 from PyPDF2 import PdfReader, PdfWriter
 import io
 import os
@@ -80,6 +81,7 @@ def create_overlay(data):
     packet = io.BytesIO()
     can = canvas.Canvas(packet)
     can.setFont("Helvetica", 9.5)
+    can.setFillColor(colors.darkblue)
 
     # ⚠️ Adjust coordinates EXACTLY as per PDF
 
