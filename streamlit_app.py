@@ -96,17 +96,10 @@ def clean_data(raw):
 # ---------------------------
 # DRAW FUNCTION (BOX TEXT)
 # ---------------------------
-def draw_boxes(can, text, x, y, box_width=12, gap=2, offset_y=2):
-    step = box_width + gap
-
+def draw_boxes(can, text, x, y, step=14, gap=0.5):
     for i, char in enumerate(text):
-        # Center horizontally inside each box
-        char_x = x + i * step + (box_width / 2) - 3   # 3 = approx half char width
-
-        # Vertical alignment
-        char_y = y + offset_y
-
-        can.drawString(char_x, char_y, char)
+        can.drawString(x + i * step, y, char)
+        
 # ---------------------------
 # SECTION RENDERER
 # ---------------------------
