@@ -96,9 +96,21 @@ def clean_data(raw):
 # ---------------------------
 # DRAW FUNCTION (BOX TEXT)
 # ---------------------------
-def draw_boxes(can, text, x, y, step=14):
+def draw_boxes(can, text, x, y, box_width=14, box_height=14, step=14):
+    font_name = "Helvetica"
+    font_size = 9.5
+
     for i, char in enumerate(text):
-        can.drawString(x + i * step, y, char)
+        # Character width
+        char_width = pdfmetrics.stringWidth(char, font_name, font_size)
+
+        # Horizontal center
+        x_pos = x + i * step + (box_width - char_width) / 2
+
+        # Vertical center
+        y_pos = y + (box_height / 2) - (font_size / 3)
+
+        can.drawString(x_pos, y_pos, char)
 
 # ---------------------------
 # SECTION RENDERER
