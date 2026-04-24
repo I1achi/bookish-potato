@@ -97,23 +97,32 @@ def clean_data(raw):
 # ---------------------------
 # DRAW FUNCTION (BOX TEXT)
 # ---------------------------
-def draw_boxes(can, text, x, y, box_width=16, box_height=14):
+from reportlab.pdfbase import pdfmetrics
+
+def draw_boxes(can, text, x, y, step=13.7, box_height=14):
     font_name = "Helvetica"
     font_size = 9.5
 
-    step = box_width  # no gap → boxes attached
-
     for i, char in enumerate(text):
+        box_x = x + i * step
+        box_y = y
+
+        # 🟦 DRAW BOX OUTLINE (DEBUG)
+        if DEBUG_BOXES:
+            can.setStrokeColorRGB(1, 0, 0)  # red border
+            can.rect(box_x, box_y, step, box_height, stroke=1, fill=0)
+
         # Character width
         char_width = pdfmetrics.stringWidth(char, font_name, font_size)
 
-        # Perfect horizontal center
-        char_x = x + i * step + (box_width - char_width) / 2
+        # Center alignment
+        x_pos = box_x + (step - char_width) / 2 + 0.5
+        y_pos = box_y + 2
 
-        # Vertical center (baseline correction)
-        char_y = y + (box_height / 2) - (font_size / 3)
+        # Text color
+        can.setFillColor(colors.darkblue)
 
-        can.drawString(char_x, char_y, char)
+        can.drawString(x_pos, y_pos, char)
         
 # ---------------------------
 # SECTION RENDERER
