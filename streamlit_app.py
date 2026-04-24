@@ -6,6 +6,8 @@ from reportlab.pdfbase import pdfmetrics
 import io
 import os
 
+DEBUG_BOXES = True
+
 # ---------------------------
 # PAGE CONFIG
 # ---------------------------
