@@ -2,7 +2,6 @@ import streamlit as st
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from PyPDF2 import PdfReader, PdfWriter
-from reportlab.pdfbase import pdfmetrics
 import io
 import os
 
@@ -97,13 +96,9 @@ def clean_data(raw):
 # ---------------------------
 # DRAW FUNCTION (BOX TEXT)
 # ---------------------------
-def draw_boxes(can, text, x, y, step=14, offset_x=2.5, offset_y=2):
+def draw_boxes(can, text, x, y, step=14):
     for i, char in enumerate(text):
-        can.drawString(
-            x + i * step + offset_x,
-            y + offset_y,
-            char
-        )
+        can.drawString(x + i * step, y, char)
 
 # ---------------------------
 # SECTION RENDERER
