@@ -1,150 +1,145 @@
 import streamlit as st
-from datetime import datetime
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from PyPDF2 import PdfReader, PdfWriter
 import io
 import os
 
+# ---------------------------
+# PAGE CONFIG
+# ---------------------------
 st.set_page_config(page_title="Form 49A Auto Fill", layout="wide")
-
 st.title("Form 49A - PAN Application")
 
 # ---------------------------
-# INPUTS (NO CHECKBOX / NO DEFAULT DATE)
+# FORM CONFIG (EDIT HERE ONLY)
+# ---------------------------
+FORM_CONFIG = {
+    "name_section": {
+        "first_name": (195, 589),
+        "middle_name": (195, 574),
+        "last_name": (195, 604),
+        "name_on_card": (100, 630)
+    },
+    "personal_section": {
+        "gender": (100, 600),
+        "dob": (200, 600)
+    },
+    "father_section": {
+        "father_first": (100, 570),
+        "father_middle": (100, 550),
+        "father_last": (100, 530)
+    },
+    "address_section": {
+        "flat": (100, 500),
+        "road": (100, 480),
+        "city": (100, 460)
+    },
+    "contact_section": {
+        "mobile": (100, 430),
+        "email": (100, 410)
+    },
+    "aadhaar_section": {
+        "aadhaar": (100, 380)
+    },
+    "declaration_section": {
+        "place": (100, 350),
+        "date": (300, 350)
+    }
+}
+
+# ---------------------------
+# INPUT UI
 # ---------------------------
 
 st.header("Applicant Name")
+c1, c2, c3 = st.columns(3)
+first_name = c1.text_input("First Name")
+middle_name = c2.text_input("Middle Name")
+last_name = c3.text_input("Last Name")
 
-col1, col2, col3 = st.columns(3)
-with col1:
-    first_name = st.text_input("First Name").upper()
-with col2:
-    middle_name = st.text_input("Middle Name").upper()
-with col3:
-    last_name = st.text_input("Last Name").upper()
+name_on_card = st.text_input("Name on PAN Card")
 
-name_on_card = st.text_input("Name on PAN Card").upper()
-
-st.header("Gender & DOB")
-
-gender = st.text_input("Gender (M/F/O)").upper()
-
-dob_input = st.text_input("Date of Birth (DD/MM/YYYY)")
-dob = dob_input if dob_input else ""
+st.header("Personal")
+gender = st.text_input("Gender (M/F/O)")
+dob = st.text_input("DOB (DD/MM/YYYY)")
 
 st.header("Father Name")
-
-col1, col2, col3 = st.columns(3)
-with col1:
-    father_first = st.text_input("Father First Name").upper()
-with col2:
-    father_middle = st.text_input("Father Middle Name").upper()
-with col3:
-    father_last = st.text_input("Father Last Name").upper()
+c1, c2, c3 = st.columns(3)
+father_first = c1.text_input("Father First Name")
+father_middle = c2.text_input("Father Middle Name")
+father_last = c3.text_input("Father Last Name")
 
 st.header("Address")
-
-flat = st.text_input("Flat / Building").upper()
-road = st.text_input("Road").upper()
-city = st.text_input("City").upper()
+flat = st.text_input("Flat / Building")
+road = st.text_input("Road")
+city = st.text_input("City")
 
 st.header("Contact")
-
 mobile = st.text_input("Mobile")
-email = st.text_input("Email").upper()
-
-aadhaar = st.text_input("Aadhaar Number")
+email = st.text_input("Email")
+aadhaar = st.text_input("Aadhaar")
 
 st.header("Declaration")
-
-place = st.text_input("Place").upper()
-date_input = st.text_input("Date (DD/MM/YYYY)")
-decl_date = date_input if date_input else ""
+place = st.text_input("Place")
+decl_date = st.text_input("Date (DD/MM/YYYY)")
 
 # ---------------------------
-# HELPER: DRAW BOX TEXT
+# DATA CLEANING
 # ---------------------------
+def clean_data(raw):
+    return {
+        k: str(v).upper().replace(" ", "").replace("/", "")
+        for k, v in raw.items()
+    }
 
-def draw_boxes(can, text, x, y, box_width=14, gap=0.25):
-    """
-    Draw each character in separate box spacing
-    """
+# ---------------------------
+# DRAW FUNCTION (BOX TEXT)
+# ---------------------------
+def draw_boxes(can, text, x, y, step=14):
     for i, char in enumerate(text):
-        can.drawString(x + i * (box_width + gap), y, char)
+        can.drawString(x + i * step, y, char)
 
 # ---------------------------
-# PDF OVERLAY
+# SECTION RENDERER
 # ---------------------------
+def render_section(can, section_config, data):
+    for field, (x, y) in section_config.items():
+        value = data.get(field, "")
+        draw_boxes(can, value, x, y)
 
+# ---------------------------
+# CREATE OVERLAY
+# ---------------------------
 def create_overlay(data):
     packet = io.BytesIO()
     can = canvas.Canvas(packet)
+
+    # Font + Color
     can.setFont("Helvetica", 9.5)
     can.setFillColor(colors.darkblue)
 
-    # ⚠️ Adjust coordinates EXACTLY as per PDF
-
-    # First Name (boxes)
-    draw_boxes(can, data["first_name"], 195, 589)
-
-    # Middle Name
-    draw_boxes(can, data["middle_name"], 195, 574)
-
-    # Last Name
-    draw_boxes(can, data["last_name"], 195, 604)
-
-    # Name on Card
-    draw_boxes(can, data["name_on_card"], 100, 630)
-
-    # Gender
-    draw_boxes(can, data["gender"], 100, 600)
-
-    # DOB
-    draw_boxes(can, data["dob"], 200, 600)
-
-    # Father Name
-    draw_boxes(can, data["father_first"], 100, 570)
-    draw_boxes(can, data["father_middle"], 100, 550)
-    draw_boxes(can, data["father_last"], 100, 530)
-
-    # Address
-    draw_boxes(can, data["flat"], 100, 500)
-    draw_boxes(can, data["road"], 100, 480)
-    draw_boxes(can, data["city"], 100, 460)
-
-    # Contact
-    draw_boxes(can, data["mobile"], 100, 430)
-    draw_boxes(can, data["email"], 100, 410)
-
-    # Aadhaar
-    draw_boxes(can, data["aadhaar"], 100, 380)
-
-    # Declaration
-    draw_boxes(can, data["place"], 100, 350)
-    draw_boxes(can, data["date"], 300, 350)
+    # Render all sections
+    for section in FORM_CONFIG.values():
+        render_section(can, section, data)
 
     can.save()
     packet.seek(0)
-
     return PdfReader(packet)
 
 # ---------------------------
 # MERGE PDF
 # ---------------------------
-
 def fill_pdf(input_pdf, output_pdf, data):
-    existing_pdf = PdfReader(open(input_pdf, "rb"))
-    overlay_pdf = create_overlay(data)
+    base_pdf = PdfReader(open(input_pdf, "rb"))
+    overlay = create_overlay(data)
 
     writer = PdfWriter()
 
-    for i in range(len(existing_pdf.pages)):
-        page = existing_pdf.pages[i]
-
-        if i < len(overlay_pdf.pages):
-            page.merge_page(overlay_pdf.pages[i])
-
+    for i in range(len(base_pdf.pages)):
+        page = base_pdf.pages[i]
+        if i < len(overlay.pages):
+            page.merge_page(overlay.pages[i])
         writer.add_page(page)
 
     with open(output_pdf, "wb") as f:
@@ -153,28 +148,29 @@ def fill_pdf(input_pdf, output_pdf, data):
 # ---------------------------
 # SUBMIT
 # ---------------------------
-
 if st.button("Generate PDF"):
 
-    data = {
-        "first_name": first_name.replace(" ", ""),
-        "middle_name": middle_name.replace(" ", ""),
-        "last_name": last_name.replace(" ", ""),
-        "name_on_card": name_on_card.replace(" ", ""),
+    raw_data = {
+        "first_name": first_name,
+        "middle_name": middle_name,
+        "last_name": last_name,
+        "name_on_card": name_on_card,
         "gender": gender,
-        "dob": dob.replace("/", ""),
-        "father_first": father_first.replace(" ", ""),
-        "father_middle": father_middle.replace(" ", ""),
-        "father_last": father_last.replace(" ", ""),
-        "flat": flat.replace(" ", ""),
-        "road": road.replace(" ", ""),
-        "city": city.replace(" ", ""),
+        "dob": dob,
+        "father_first": father_first,
+        "father_middle": father_middle,
+        "father_last": father_last,
+        "flat": flat,
+        "road": road,
+        "city": city,
         "mobile": mobile,
-        "email": email.replace(" ", ""),
+        "email": email,
         "aadhaar": aadhaar,
-        "place": place.replace(" ", ""),
-        "date": decl_date.replace("/", "")
+        "place": place,
+        "date": decl_date
     }
+
+    data = clean_data(raw_data)
 
     input_pdf = "Form49A.pdf"
     output_pdf = "filled_Form49A.pdf"
@@ -185,5 +181,5 @@ if st.button("Generate PDF"):
         fill_pdf(input_pdf, output_pdf, data)
 
         with open(output_pdf, "rb") as f:
-            st.success("PDF Generated")
-            st.download_button("Download", f, "Form49A_filled.pdf")
+            st.success("PDF Generated Successfully")
+            st.download_button("Download PDF", f, "Form49A_filled.pdf")
