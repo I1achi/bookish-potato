@@ -2,6 +2,7 @@ import streamlit as st
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from PyPDF2 import PdfReader, PdfWriter
+from reportlab.pdfbase import pdfmetrics
 import io
 import os
 
